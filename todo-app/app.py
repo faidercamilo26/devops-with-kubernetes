@@ -20,13 +20,34 @@ HTML = b"""<!DOCTYPE html>
 <img src="/image" alt="Random image" style="max-width:100%">
 <div>
 <input type="text" id="todo" maxlength="140" placeholder="New todo (max 140 characters)">
-<button type="button">Send</button>
+<button type="button" id="send">Send</button>
 </div>
-<ul>
-<li>Learn JavaScript</li>
-<li>Learn Kubernetes</li>
-<li>Build the project</li>
-</ul>
+<ul id="todos"></ul>
+<script>
+async function loadTodos() {
+  const response = await fetch("/todos");
+  const todos = await response.json();
+  const list = document.getElementById("todos");
+  list.innerHTML = "";
+  for (const todo of todos) {
+    const item = document.createElement("li");
+    item.textContent = todo;
+    list.appendChild(item);
+  }
+}
+document.getElementById("send").addEventListener("click", async () => {
+  const input = document.getElementById("todo");
+  if (!input.value) return;
+  await fetch("/todos", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ todo: input.value })
+  });
+  input.value = "";
+  loadTodos();
+});
+loadTodos();
+</script>
 </body>
 </html>
 """
