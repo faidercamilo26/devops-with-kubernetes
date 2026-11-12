@@ -12,14 +12,21 @@ spec:
       labels:
         app: todo-app
     spec:
+      volumes:
+        - name: image-cache
+          persistentVolumeClaim:
+            claimName: todo-app-pvc
       containers:
         - name: todo-app
-          image: faidercamilo/todo-app:1.5
+          image: faidercamilo/todo-app:1.12
           env:
             - name: PORT
               value: "3000"
           ports:
             - containerPort: 3000
+          volumeMounts:
+            - name: image-cache
+              mountPath: /usr/src/app/files
           resources:
             requests:
               cpu: "10m"
