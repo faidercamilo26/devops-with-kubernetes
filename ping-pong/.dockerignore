@@ -1,0 +1,4 @@
+manifests/
+__pycache__/
+*.pyc
+.git
