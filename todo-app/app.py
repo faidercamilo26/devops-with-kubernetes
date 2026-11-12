@@ -18,6 +18,15 @@ HTML = b"""<!DOCTYPE html>
 <body>
 <h1>Todo app</h1>
 <img src="/image" alt="Random image" style="max-width:100%">
+<div>
+<input type="text" id="todo" maxlength="140" placeholder="New todo (max 140 characters)">
+<button type="button">Send</button>
+</div>
+<ul>
+<li>Learn JavaScript</li>
+<li>Learn Kubernetes</li>
+<li>Build the project</li>
+</ul>
 </body>
 </html>
 """
