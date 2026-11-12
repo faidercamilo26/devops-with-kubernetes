@@ -8,3 +8,4 @@
 - [1.2](https://github.com/faidercamilo26/devops-with-kubernetes/tree/1.2/todo-app)
 - [1.3](https://github.com/faidercamilo26/devops-with-kubernetes/tree/1.3/log-output)
 - [1.4](https://github.com/faidercamilo26/devops-with-kubernetes/tree/1.4/todo-app)
+- [1.5](https://github.com/faidercamilo26/devops-with-kubernetes/tree/1.5/todo-app)
