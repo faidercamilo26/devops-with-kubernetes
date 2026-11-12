@@ -3,21 +3,27 @@ import sys
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 PORT = 3000
-FILE = "/usr/src/app/files/log.txt"
+LOG_FILE = "/usr/src/app/files/log.txt"
+PINGPONG_FILE = "/usr/src/app/pingpong/pingpong.txt"
 
 
 def handle_sigterm(signum, frame):
     sys.exit(0)
 
 
+def read_file(path, default):
+    try:
+        with open(path) as f:
+            return f.read()
+    except FileNotFoundError:
+        return default
+
+
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        try:
-            with open(FILE) as f:
-                content = f.read()
-        except FileNotFoundError:
-            content = ""
-        body = content.encode()
+        log = read_file(LOG_FILE, "")
+        pongs = read_file(PINGPONG_FILE, "0").strip()
+        body = f"{log}Ping / Pongs: {pongs}\n".encode()
         self.send_response(200)
         self.send_header("Content-Type", "text/plain; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
