@@ -15,9 +15,6 @@ spec:
       volumes:
         - name: shared-log
           emptyDir: {}
-        - name: shared-files
-          persistentVolumeClaim:
-            claimName: shared-pvc
       containers:
         - name: log-writer
           image: faidercamilo/log-output-writer:1.10
@@ -32,14 +29,12 @@ spec:
               cpu: "100m"
               memory: "64Mi"
         - name: log-reader
-          image: faidercamilo/log-output-reader:1.11
+          image: faidercamilo/log-output-reader:2.1
           ports:
             - containerPort: 3000
           volumeMounts:
             - name: shared-log
               mountPath: /usr/src/app/files
-            - name: shared-files
-              mountPath: /usr/src/app/pingpong
           resources:
             requests:
               cpu: "10m"
