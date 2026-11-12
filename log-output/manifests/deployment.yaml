@@ -12,11 +12,29 @@ spec:
       labels:
         app: log-output
     spec:
+      volumes:
+        - name: shared-log
+          emptyDir: {}
       containers:
-        - name: log-output
-          image: faidercamilo/log-output:1.7
+        - name: log-writer
+          image: faidercamilo/log-output-writer:1.10
+          volumeMounts:
+            - name: shared-log
+              mountPath: /usr/src/app/files
+          resources:
+            requests:
+              cpu: "10m"
+              memory: "16Mi"
+            limits:
+              cpu: "100m"
+              memory: "64Mi"
+        - name: log-reader
+          image: faidercamilo/log-output-reader:1.10
           ports:
             - containerPort: 3000
+          volumeMounts:
+            - name: shared-log
+              mountPath: /usr/src/app/files
           resources:
             requests:
               cpu: "10m"

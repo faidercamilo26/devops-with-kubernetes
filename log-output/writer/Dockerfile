@@ -3,7 +3,7 @@ FROM python:3.13-alpine
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
-WORKDIR /app
+WORKDIR /usr/src/app
 
 COPY app.py .
 
