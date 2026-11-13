@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  namespace: project
+  name: todo-cronjob
+spec:
+  schedule: "0 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: todo-cronjob
+              image: curlimages/curl:8.11.1
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  set -e
+                  URL=$(curl -s -o /dev/null -w '%{redirect_url}' "$WIKIPEDIA_RANDOM_URL")
+                  test -n "$URL"
+                  curl -sf -X POST -H 'Content-Type: application/json' -d "{\"todo\": \"Read $URL\"}" "$TODO_BACKEND_URL"
+              env:
+                - name: WIKIPEDIA_RANDOM_URL
+                  value: https://en.wikipedia.org/wiki/Special:Random
+                - name: TODO_BACKEND_URL
+                  value: http://todo-backend-svc:2345/todos
