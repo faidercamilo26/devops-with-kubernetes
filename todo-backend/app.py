@@ -2,10 +2,53 @@ import json
 import os
 import signal
 import sys
+import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+import pg8000.native
+
 PORT = int(os.environ["PORT"])
-todos = []
+DB_SETTINGS = {
+    "host": os.environ["DB_HOST"],
+    "port": int(os.environ["DB_PORT"]),
+    "database": os.environ["DB_NAME"],
+    "user": os.environ["DB_USER"],
+    "password": os.environ["DB_PASSWORD"],
+}
+
+
+def connect():
+    return pg8000.native.Connection(**DB_SETTINGS)
+
+
+def init_db():
+    while True:
+        try:
+            conn = connect()
+            try:
+                conn.run("CREATE TABLE IF NOT EXISTS todos (id serial PRIMARY KEY, todo text NOT NULL)")
+            finally:
+                conn.close()
+            return
+        except Exception as e:
+            print(f"Waiting for the database: {e}", flush=True)
+            time.sleep(2)
+
+
+def get_todos():
+    conn = connect()
+    try:
+        return [row[0] for row in conn.run("SELECT todo FROM todos ORDER BY id")]
+    finally:
+        conn.close()
+
+
+def add_todo(todo):
+    conn = connect()
+    try:
+        conn.run("INSERT INTO todos (todo) VALUES (:todo)", todo=todo)
+    finally:
+        conn.close()
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -18,10 +61,14 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_GET(self):
-        if self.path == "/todos":
-            self.send_json(200, todos)
-        else:
+        if self.path != "/todos":
             self.send_error(404)
+            return
+        try:
+            self.send_json(200, get_todos())
+        except Exception as e:
+            print(f"Database error: {e}", flush=True)
+            self.send_error(500)
 
     def do_POST(self):
         if self.path != "/todos":
@@ -35,7 +82,12 @@ class Handler(BaseHTTPRequestHandler):
         except (ValueError, KeyError, TypeError):
             self.send_error(400)
             return
-        todos.append(todo)
+        try:
+            add_todo(todo)
+        except Exception as e:
+            print(f"Database error: {e}", flush=True)
+            self.send_error(500)
+            return
         self.send_json(201, {"todo": todo})
 
 
@@ -45,6 +97,7 @@ def handle_sigterm(signum, frame):
 
 def main():
     signal.signal(signal.SIGTERM, handle_sigterm)
+    init_db()
     server = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
     print(f"Server started in port {PORT}", flush=True)
     server.serve_forever()
