@@ -37,6 +37,7 @@ jobs:
 
       # kustomize comes preinstalled on ubuntu-latest.
       - name: Use right images
+        working-directory: base
         run: |-
           kustomize edit set image \
             PROJECT/TODO_APP="$REGISTRY_USER/todo-app:$GITHUB_SHA" \
@@ -47,5 +48,5 @@ jobs:
       - name: Commit kustomization.yaml to GitHub
         uses: EndBug/add-and-commit@v10
         with:
-          add: 'kustomization.yaml'
+          add: 'base/kustomization.yaml'
           message: New version released ${{ github.sha }}

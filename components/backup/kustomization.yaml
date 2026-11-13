@@ -1,0 +1,6 @@
+# Daily database backup. Only the production overlay includes this component.
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+resources:
+  - cronjob.yaml
+  - persistentvolumeclaim.yaml

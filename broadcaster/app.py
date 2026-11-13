@@ -9,7 +9,8 @@ import nats
 NATS_URL = os.environ["NATS_URL"]
 NATS_SUBJECT = os.environ["NATS_SUBJECT"]
 NATS_QUEUE = os.environ["NATS_QUEUE"]
-WEBHOOK_URL = os.environ["WEBHOOK_URL"]
+# Without a webhook (as in staging) the messages are only logged, never forwarded.
+WEBHOOK_URL = os.environ.get("WEBHOOK_URL")
 
 
 def describe(event):
@@ -34,6 +35,9 @@ async def on_message(msg):
         message = describe(json.loads(msg.data))
     except Exception as e:
         print(f"Ignoring a message that could not be read: {e}", flush=True)
+        return
+    if not WEBHOOK_URL:
+        print(f"Not forwarded, no webhook configured: {message}", flush=True)
         return
     # A message that fails to be delivered is dropped on purpose: a missing message is
     # acceptable, a duplicated one is not, so there is no retry.

@@ -1,18 +1,21 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: todo-project
+  name: todo-production
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: https://github.com/faidercamilo26/devops-with-kubernetes
-    path: .
-    targetRevision: main
+    path: overlays/production
+    # Only tags are deployed to production: ArgoCD follows the highest tag (semver constraint "*").
+    targetRevision: "*"
   destination:
     server: https://kubernetes.default.svc
-    namespace: project
+    namespace: production
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
