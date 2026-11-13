@@ -54,6 +54,7 @@
 - [4.4](https://github.com/faidercamilo26/devops-with-kubernetes/tree/4.4/ping-pong)
 - [4.5](https://github.com/faidercamilo26/devops-with-kubernetes/tree/4.5/todo-backend)
 - [4.6](https://github.com/faidercamilo26/devops-with-kubernetes/tree/4.6/broadcaster)
+- [4.7](https://github.com/faidercamilo26/devops-with-kubernetes/tree/4.7/argocd)
 
 ## 3.9 DBaaS vs DIY
 
