@@ -5,5 +5,5 @@ metadata:
   name: log-output-configmap
 data:
   information.txt: |
-    this text is from file
+    this text is from file, deployed by ArgoCD
   MESSAGE: hello world
