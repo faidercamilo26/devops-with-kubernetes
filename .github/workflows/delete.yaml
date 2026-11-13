@@ -1,0 +1,29 @@
+name: Delete environment
+
+on:
+  delete:
+
+permissions:
+  contents: read
+
+jobs:
+  delete-environment:
+    name: Delete the environment of the deleted branch
+    # The delete event also fires when a tag is deleted, so only act on branches.
+    if: github.event.ref_type == 'branch'
+    runs-on: ubuntu-latest
+
+    steps:
+      # Same cluster connection as the deployment workflow: a temporary kind cluster inside the runner.
+      # There the environment no longer exists once the deploy job ends, so this finds nothing to delete.
+      # With a persistent cluster only this connection step changes; the delete step stays the same.
+      - name: Create a temporary cluster
+        run: kind create cluster
+
+      - name: Delete the environment
+        env:
+          DELETED_BRANCH: ${{ github.event.ref }}
+        run: |-
+          NAMESPACE="$DELETED_BRANCH"
+          if [ "$NAMESPACE" = "main" ]; then NAMESPACE=project; fi
+          kubectl delete namespace "$NAMESPACE" --ignore-not-found
