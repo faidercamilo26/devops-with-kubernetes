@@ -37,3 +37,4 @@
 > cluster with the closest local equivalents: k3s ServiceLB, Traefik Ingress and Traefik Gateway API.
 
 - [3.1](https://github.com/faidercamilo26/devops-with-kubernetes/tree/3.1/ping-pong)
+- [3.2](https://github.com/faidercamilo26/devops-with-kubernetes/tree/3.2/log-output)

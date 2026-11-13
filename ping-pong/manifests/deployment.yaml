@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: ping-pong
-          image: faidercamilo/ping-pong:2.7
+          image: faidercamilo/ping-pong:3.2
           env:
             - name: DB_HOST
               value: postgres-svc
