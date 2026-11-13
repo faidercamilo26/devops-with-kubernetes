@@ -1,0 +1,13 @@
+# Local (k3d) equivalent of: gcloud container clusters update dwk-cluster --gateway-api=standard
+# The Gateway API CRDs already ship with k3s; this turns on Traefik's Gateway API provider,
+# which also creates the "traefik" GatewayClass.
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    providers:
+      kubernetesGateway:
+        enabled: true

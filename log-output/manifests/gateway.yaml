@@ -1,0 +1,16 @@
+# Local (k3d) version. On GKE this would use gatewayClassName: gke-l7-global-external-managed and port 80.
+# Here the class is Traefik's, and 8000 is the port of Traefik's "web" entrypoint (published as 80).
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  namespace: exercises
+  name: my-gateway
+spec:
+  gatewayClassName: traefik
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 8000
+      allowedRoutes:
+        kinds:
+          - kind: HTTPRoute
