@@ -6,11 +6,11 @@ import time
 import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-PORT = int(os.environ.get("PORT", "3000"))
-IMAGE_URL = "https://picsum.photos/1200"
-IMAGE_FILE = "/usr/src/app/files/image.jpg"
+PORT = int(os.environ["PORT"])
+IMAGE_URL = os.environ["IMAGE_URL"]
+IMAGE_FILE = os.environ["IMAGE_FILE"]
 TMP_FILE = IMAGE_FILE + ".tmp"
-CACHE_SECONDS = 600
+CACHE_SECONDS = int(os.environ["CACHE_SECONDS"])
 
 HTML = b"""<!DOCTYPE html>
 <html>

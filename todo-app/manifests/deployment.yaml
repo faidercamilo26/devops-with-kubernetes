@@ -19,10 +19,10 @@ spec:
             claimName: todo-app-pvc
       containers:
         - name: todo-app
-          image: faidercamilo/todo-app:2.2
-          env:
-            - name: PORT
-              value: "3000"
+          image: faidercamilo/todo-app:2.6
+          envFrom:
+            - configMapRef:
+                name: todo-app-configmap
           ports:
             - containerPort: 3000
           volumeMounts:

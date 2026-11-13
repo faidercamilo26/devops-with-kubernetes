@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: todo-backend
-          image: faidercamilo/todo-backend:2.2
+          image: faidercamilo/todo-backend:2.6
           env:
             - name: PORT
               value: "3000"
