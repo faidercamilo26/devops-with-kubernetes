@@ -66,14 +66,11 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_GET(self):
-        if self.path == "/":
-            self.send_text("ping-pong")
-            return
-        if self.path not in ("/pingpong", "/pings"):
+        if self.path not in ("/", "/pings"):
             self.send_error(404)
             return
         try:
-            if self.path == "/pingpong":
+            if self.path == "/":
                 self.send_text(f"pong {next_pong()}")
             else:
                 self.send_text(get_pings())
