@@ -10,6 +10,8 @@ resources:
   - todo-backend/manifests/deployment.yaml
   - todo-backend/manifests/postgres-statefulset.yaml
   - todo-backend/manifests/service.yaml
+  - todo-backup/manifests/cronjob.yaml
+  - todo-backup/manifests/persistentvolumeclaim.yaml
   - todo-cronjob/manifests/cronjob.yaml
 images:
   - name: PROJECT/TODO_APP
