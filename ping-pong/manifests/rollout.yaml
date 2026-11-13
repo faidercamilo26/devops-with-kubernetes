@@ -1,13 +1,20 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 metadata:
   namespace: exercises
   name: ping-pong
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: ping-pong
+  strategy:
+    canary:
+      steps:
+        - setWeight: 50
+        - analysis:
+            templates:
+              - templateName: cpu-usage
   template:
     metadata:
       labels:
@@ -15,7 +22,7 @@ spec:
     spec:
       containers:
         - name: ping-pong
-          image: faidercamilo/ping-pong:4.1
+          image: faidercamilo/ping-pong:4.4
           env:
             - name: DB_HOST
               value: postgres-svc
