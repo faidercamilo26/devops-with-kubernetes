@@ -1,15 +1,20 @@
+import asyncio
 import json
 import os
 import re
 import signal
 import sys
+import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+import nats
 import pg8000.native
 
 PORT = int(os.environ["PORT"])
 MAX_TODO_LENGTH = int(os.environ["MAX_TODO_LENGTH"])
+NATS_URL = os.environ["NATS_URL"]
+NATS_SUBJECT = os.environ["NATS_SUBJECT"]
 DB_SETTINGS = {
     "host": os.environ["DB_HOST"],
     "port": int(os.environ["DB_PORT"]),
@@ -80,6 +85,50 @@ def set_done(todo_id, done):
         conn.close()
 
 
+class Publisher:
+    """Publishes todo events to NATS from a background event loop.
+
+    It never blocks or breaks the backend: if NATS is not reachable the message is
+    dropped, because a missing message is acceptable.
+    """
+
+    def __init__(self, url, subject):
+        self.url = url
+        self.subject = subject
+        self.nc = None
+        self.loop = asyncio.new_event_loop()
+        threading.Thread(target=self._run, daemon=True).start()
+
+    def _run(self):
+        asyncio.set_event_loop(self.loop)
+        self.loop.run_until_complete(self._connect())
+        self.loop.run_forever()
+
+    async def _connect(self):
+        while True:
+            try:
+                self.nc = await nats.connect(self.url, max_reconnect_attempts=-1, connect_timeout=2)
+                print("Connected to NATS", flush=True)
+                return
+            except Exception as e:
+                print(f"Waiting for NATS: {e}", flush=True)
+                await asyncio.sleep(2)
+
+    def publish(self, event):
+        nc = self.nc
+        if nc is None or not nc.is_connected:
+            print("NATS is not connected, the message was dropped", flush=True)
+            return
+        try:
+            data = json.dumps(event).encode()
+            asyncio.run_coroutine_threadsafe(nc.publish(self.subject, data), self.loop).result(timeout=2)
+        except Exception as e:
+            print(f"Could not publish to NATS, the message was dropped: {e}", flush=True)
+
+
+publisher = None
+
+
 class Handler(BaseHTTPRequestHandler):
     def send_json(self, status, data):
         body = json.dumps(data).encode()
@@ -140,6 +189,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_error(500)
             return
         print(f'Todo created: "{todo}"', flush=True)
+        publisher.publish({"event": "created", "todo": created})
         self.send_json(201, created)
 
     def do_PUT(self):
@@ -168,6 +218,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_error(404)
             return
         print(f'Todo {todo_id} marked as {"done" if done else "not done"}: "{updated["todo"]}"', flush=True)
+        publisher.publish({"event": "updated", "todo": updated})
         self.send_json(200, updated)
 
 
@@ -176,7 +227,9 @@ def handle_sigterm(signum, frame):
 
 
 def main():
+    global publisher
     signal.signal(signal.SIGTERM, handle_sigterm)
+    publisher = Publisher(NATS_URL, NATS_SUBJECT)
     init_db()
     server = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
     print(f"Server started in port {PORT}", flush=True)

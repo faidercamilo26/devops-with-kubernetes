@@ -21,6 +21,10 @@ spec:
               value: "3000"
             - name: MAX_TODO_LENGTH
               value: "140"
+            - name: NATS_URL
+              value: nats://my-nats.nats.svc.cluster.local:4222
+            - name: NATS_SUBJECT
+              value: todos.events
             - name: DB_HOST
               value: postgres-svc
             - name: DB_PORT
