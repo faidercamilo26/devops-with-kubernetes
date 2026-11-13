@@ -15,7 +15,21 @@ spec:
     spec:
       containers:
         - name: ping-pong
-          image: faidercamilo/ping-pong:2.1
+          image: faidercamilo/ping-pong:2.7
+          env:
+            - name: DB_HOST
+              value: postgres-svc
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: postgres
+            - name: DB_USER
+              value: postgres
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
           ports:
             - containerPort: 3000
           resources:
