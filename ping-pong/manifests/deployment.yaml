@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: ping-pong
-          image: faidercamilo/ping-pong:3.4
+          image: faidercamilo/ping-pong:4.1
           env:
             - name: DB_HOST
               value: postgres-svc
@@ -30,6 +30,12 @@ spec:
                 secretKeyRef:
                   name: postgres-secret
                   key: POSTGRES_PASSWORD
+          readinessProbe:
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            httpGet:
+              path: /healthz
+              port: 3000
           ports:
             - containerPort: 3000
           resources:

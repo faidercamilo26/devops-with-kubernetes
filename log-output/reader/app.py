@@ -34,7 +34,24 @@ def read_pongs():
 
 
 class Handler(BaseHTTPRequestHandler):
+    def send_status(self, text, status):
+        body = f"{text}\n".encode()
+        self.send_response(status)
+        self.send_header("Content-Type", "text/plain; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
     def do_GET(self):
+        if self.path == "/healthz":
+            try:
+                read_pongs()
+            except Exception as e:
+                print(f"Ping-pong not available: {e}", flush=True)
+                self.send_status("ping-pong not available", 500)
+                return
+            self.send_status("ok", 200)
+            return
         try:
             pongs = read_pongs()
         except Exception as e:

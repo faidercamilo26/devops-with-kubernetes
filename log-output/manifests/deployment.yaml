@@ -36,7 +36,13 @@ spec:
               cpu: "100m"
               memory: "64Mi"
         - name: log-reader
-          image: faidercamilo/log-output-reader:2.5
+          image: faidercamilo/log-output-reader:4.1
+          readinessProbe:
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            httpGet:
+              path: /healthz
+              port: 3000
           env:
             - name: MESSAGE
               valueFrom:
