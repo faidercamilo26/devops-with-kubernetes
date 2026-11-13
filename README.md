@@ -35,8 +35,12 @@
 
 > Not run on GKE (no Google Cloud billing available). These exercises were done on a local k3d
 > cluster with the closest local equivalents: k3s ServiceLB, Traefik Ingress and Traefik Gateway API.
+>
+> The project manifests use image placeholders (`PROJECT/TODO_APP`, `PROJECT/TODO_BACKEND`), so deploy
+> them with Kustomize from the repository root: `kubectl apply -k .`
 
 - [3.1](https://github.com/faidercamilo26/devops-with-kubernetes/tree/3.1/ping-pong)
 - [3.2](https://github.com/faidercamilo26/devops-with-kubernetes/tree/3.2/log-output)
 - [3.3](https://github.com/faidercamilo26/devops-with-kubernetes/tree/3.3/log-output)
 - [3.4](https://github.com/faidercamilo26/devops-with-kubernetes/tree/3.4/ping-pong)
+- [3.5](https://github.com/faidercamilo26/devops-with-kubernetes/tree/3.5)
