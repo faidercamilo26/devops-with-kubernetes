@@ -50,6 +50,7 @@
 
 - [4.1](https://github.com/faidercamilo26/devops-with-kubernetes/tree/4.1/ping-pong)
 - [4.2](https://github.com/faidercamilo26/devops-with-kubernetes/tree/4.2/todo-app)
+- [4.3](https://github.com/faidercamilo26/devops-with-kubernetes/tree/4.3)
 
 ## 3.9 DBaaS vs DIY
 
@@ -90,3 +91,22 @@ cluster provisions the PersistentVolumes).
 For a production system where losing data or being down is costly, a DBaaS is usually worth the price because backups,
 updates and failover are solved. For a small project, a learning environment or when cost and portability matter more,
 running Postgres in a StatefulSet is simpler and cheaper, as long as we accept owning the backups and the maintenance.
+
+## 4.3 Prometheus
+
+Prometheus is reached through its Service:
+
+```
+kubectl port-forward svc/prom-prometheus-server -n monitoring 9090:80
+```
+
+Query that shows the number of pods created by StatefulSets in the monitoring namespace
+(open http://localhost:9090 and run it in the Graph tab):
+
+```
+count(kube_pod_info{namespace="monitoring", created_by_kind="StatefulSet"})
+```
+
+In this cluster it returns `1`: the only pod created by a StatefulSet in `monitoring` is `loki-0`.
+`kube_pod_info` has one series per pod, `namespace` selects the monitoring stack and `created_by_kind`
+is the kind of controller that created the pod.
