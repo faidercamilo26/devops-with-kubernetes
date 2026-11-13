@@ -1,65 +1,51 @@
-name: Release application
+name: Build and publish application
 
 on:
   push:
+    branches:
+      - main
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   REGISTRY_USER: ${{ secrets.DOCKERHUB_USERNAME }}
-  BRANCH: ${{ github.ref_name }}
 
 jobs:
-  build-publish-deploy:
-    name: Build, Publish and Deploy
+  build-publish:
+    name: Build, Push, Release
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Log in to Docker Hub
+      - name: Login to Docker Hub
         uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Form the image names
+      - name: Build and publish
         run: |-
-          echo "TODO_APP_IMAGE=$REGISTRY_USER/todo-app:$BRANCH-$GITHUB_SHA" >> $GITHUB_ENV
-          echo "TODO_BACKEND_IMAGE=$REGISTRY_USER/todo-backend:$BRANCH-$GITHUB_SHA" >> $GITHUB_ENV
-          echo "BROADCASTER_IMAGE=$REGISTRY_USER/broadcaster:$BRANCH-$GITHUB_SHA" >> $GITHUB_ENV
+          docker build --tag "$REGISTRY_USER/todo-app:$GITHUB_SHA" ./todo-app
+          docker build --tag "$REGISTRY_USER/todo-backend:$GITHUB_SHA" ./todo-backend
+          docker build --tag "$REGISTRY_USER/broadcaster:$GITHUB_SHA" ./broadcaster
+          docker push "$REGISTRY_USER/todo-app:$GITHUB_SHA"
+          docker push "$REGISTRY_USER/todo-backend:$GITHUB_SHA"
+          docker push "$REGISTRY_USER/broadcaster:$GITHUB_SHA"
 
-      - name: Build
+      # kustomize comes preinstalled on ubuntu-latest.
+      - name: Use right images
         run: |-
-          docker build --tag $TODO_APP_IMAGE ./todo-app
-          docker build --tag $TODO_BACKEND_IMAGE ./todo-backend
-          docker build --tag $BROADCASTER_IMAGE ./broadcaster
+          kustomize edit set image \
+            PROJECT/TODO_APP="$REGISTRY_USER/todo-app:$GITHUB_SHA" \
+            PROJECT/TODO_BACKEND="$REGISTRY_USER/todo-backend:$GITHUB_SHA" \
+            PROJECT/BROADCASTER="$REGISTRY_USER/broadcaster:$GITHUB_SHA"
 
-      - name: Publish
-        run: |-
-          docker push $TODO_APP_IMAGE
-          docker push $TODO_BACKEND_IMAGE
-          docker push $BROADCASTER_IMAGE
-
-      # There is no Google Cloud cluster, so the deployment goes to a temporary kind cluster
-      # created inside the runner. kind, kubectl and kustomize come preinstalled on ubuntu-latest.
-      - name: Create a temporary cluster
-        run: kind create cluster
-
-      - name: Deploy
-        run: |-
-          # Every branch gets its own namespace named after the branch; main deploys to "project".
-          NAMESPACE="${GITHUB_REF#refs/heads/}"
-          if [ "$NAMESPACE" = "main" ]; then NAMESPACE=project; fi
-          kubectl create namespace "$NAMESPACE" || true
-          kubectl config set-context --current --namespace="$NAMESPACE"
-          kubectl create secret generic postgres-secret --from-literal=POSTGRES_PASSWORD=$(openssl rand -hex 16)
-          kustomize edit set namespace "$NAMESPACE"
-          kustomize edit set image PROJECT/TODO_APP=$TODO_APP_IMAGE PROJECT/TODO_BACKEND=$TODO_BACKEND_IMAGE PROJECT/BROADCASTER=$BROADCASTER_IMAGE
-          kustomize build . | kubectl apply -f -
-          kubectl rollout status statefulset postgres-ss --timeout=300s
-          kubectl rollout status deployment todo-backend --timeout=300s
-          kubectl rollout status deployment todo-app --timeout=300s
-          kubectl get services -o wide
+      # ArgoCD watches this repository and deploys the change by itself.
+      - name: Commit kustomization.yaml to GitHub
+        uses: EndBug/add-and-commit@v10
+        with:
+          add: 'kustomization.yaml'
+          message: New version released ${{ github.sha }}
