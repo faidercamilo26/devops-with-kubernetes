@@ -35,6 +35,13 @@ spec:
               volumeMounts:
                 - name: backup
                   mountPath: /backup
+              resources:
+                requests:
+                  cpu: "10m"
+                  memory: "32Mi"
+                limits:
+                  cpu: "200m"
+                  memory: "128Mi"
           volumes:
             - name: backup
               persistentVolumeClaim:

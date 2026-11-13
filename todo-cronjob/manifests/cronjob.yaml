@@ -25,3 +25,10 @@ spec:
                   value: https://en.wikipedia.org/wiki/Special:Random
                 - name: TODO_BACKEND_URL
                   value: http://todo-backend-svc:2345/todos
+              resources:
+                requests:
+                  cpu: "5m"
+                  memory: "8Mi"
+                limits:
+                  cpu: "50m"
+                  memory: "32Mi"
