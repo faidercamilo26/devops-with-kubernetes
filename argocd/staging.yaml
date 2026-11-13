@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/faidercamilo26/devops-with-kubernetes
+    repoURL: https://github.com/faidercamilo26/devops-with-kubernetes-config
     path: overlays/staging
     # Every commit to main is deployed to staging.
     targetRevision: main

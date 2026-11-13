@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/faidercamilo26/devops-with-kubernetes
+    repoURL: https://github.com/faidercamilo26/devops-with-kubernetes-config
     path: overlays/production
     # Only tags are deployed to production: ArgoCD follows the highest tag (semver constraint "*").
     targetRevision: "*"

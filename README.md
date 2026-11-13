@@ -57,6 +57,7 @@
 - [4.7](https://github.com/faidercamilo26/devops-with-kubernetes/tree/4.7/argocd)
 - [4.8](https://github.com/faidercamilo26/devops-with-kubernetes/tree/4.8/argocd)
 - [4.9](https://github.com/faidercamilo26/devops-with-kubernetes/tree/4.9/overlays)
+- [4.10](https://github.com/faidercamilo26/devops-with-kubernetes/tree/4.10/argocd)
 
 ## 3.9 DBaaS vs DIY
 

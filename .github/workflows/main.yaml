@@ -5,9 +5,6 @@ on:
     branches:
       - main
 
-permissions:
-  contents: write
-
 env:
   REGISTRY_USER: ${{ secrets.DOCKERHUB_USERNAME }}
 
@@ -35,18 +32,23 @@ jobs:
           docker push "$REGISTRY_USER/todo-backend:$GITHUB_SHA"
           docker push "$REGISTRY_USER/broadcaster:$GITHUB_SHA"
 
+      - name: Checkout config repository
+        uses: actions/checkout@v7
+        with:
+          repository: faidercamilo26/devops-with-kubernetes-config
+          token: ${{ secrets.CONFIG_REPO_TOKEN }}
+          path: config
+
       # kustomize comes preinstalled on ubuntu-latest.
       - name: Use right images
-        working-directory: base
+        working-directory: config/base
         run: |-
-          kustomize edit set image \
-            PROJECT/TODO_APP="$REGISTRY_USER/todo-app:$GITHUB_SHA" \
-            PROJECT/TODO_BACKEND="$REGISTRY_USER/todo-backend:$GITHUB_SHA" \
-            PROJECT/BROADCASTER="$REGISTRY_USER/broadcaster:$GITHUB_SHA"
+          kustomize edit set image             PROJECT/TODO_APP="$REGISTRY_USER/todo-app:$GITHUB_SHA"             PROJECT/TODO_BACKEND="$REGISTRY_USER/todo-backend:$GITHUB_SHA"             PROJECT/BROADCASTER="$REGISTRY_USER/broadcaster:$GITHUB_SHA"
 
-      # ArgoCD watches this repository and deploys the change by itself.
-      - name: Commit kustomization.yaml to GitHub
+      # ArgoCD watches the config repository and deploys the change by itself.
+      - name: Commit kustomization.yaml to the config repository
         uses: EndBug/add-and-commit@v10
         with:
+          cwd: config
           add: 'base/kustomization.yaml'
           message: New version released ${{ github.sha }}
