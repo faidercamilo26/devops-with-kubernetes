@@ -34,7 +34,23 @@ async function loadTodos() {
   list.innerHTML = "";
   for (const todo of todos) {
     const item = document.createElement("li");
-    item.textContent = todo;
+    const box = document.createElement("input");
+    box.type = "checkbox";
+    box.title = "Done";
+    box.checked = todo.done;
+    box.addEventListener("change", async () => {
+      await fetch("/todos/" + todo.id, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ done: box.checked })
+      });
+      loadTodos();
+    });
+    const label = document.createElement("span");
+    label.textContent = " " + todo.todo;
+    if (todo.done) label.style.textDecoration = "line-through";
+    item.appendChild(box);
+    item.appendChild(label);
     list.appendChild(item);
   }
 }

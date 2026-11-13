@@ -16,7 +16,7 @@ resources:
 images:
   - name: PROJECT/TODO_APP
     newName: faidercamilo/todo-app
-    newTag: "4.2"
+    newTag: "4.5"
   - name: PROJECT/TODO_BACKEND
     newName: faidercamilo/todo-backend
-    newTag: "4.2"
+    newTag: "4.5"

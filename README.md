@@ -52,6 +52,7 @@
 - [4.2](https://github.com/faidercamilo26/devops-with-kubernetes/tree/4.2/todo-app)
 - [4.3](https://github.com/faidercamilo26/devops-with-kubernetes/tree/4.3)
 - [4.4](https://github.com/faidercamilo26/devops-with-kubernetes/tree/4.4/ping-pong)
+- [4.5](https://github.com/faidercamilo26/devops-with-kubernetes/tree/4.5/todo-backend)
 
 ## 3.9 DBaaS vs DIY
 

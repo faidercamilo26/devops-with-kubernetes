@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import signal
 import sys
 import time
@@ -29,6 +30,7 @@ def init_db():
             conn = connect()
             try:
                 conn.run("CREATE TABLE IF NOT EXISTS todos (id serial PRIMARY KEY, todo text NOT NULL)")
+                conn.run("ALTER TABLE todos ADD COLUMN IF NOT EXISTS done boolean NOT NULL DEFAULT false")
             finally:
                 conn.close()
             return
@@ -45,10 +47,14 @@ def check_database():
         conn.close()
 
 
+def to_dict(row):
+    return {"id": row[0], "todo": row[1], "done": row[2]}
+
+
 def get_todos():
     conn = connect()
     try:
-        return [row[0] for row in conn.run("SELECT todo FROM todos ORDER BY id")]
+        return [to_dict(row) for row in conn.run("SELECT id, todo, done FROM todos ORDER BY id")]
     finally:
         conn.close()
 
@@ -56,7 +62,20 @@ def get_todos():
 def add_todo(todo):
     conn = connect()
     try:
-        conn.run("INSERT INTO todos (todo) VALUES (:todo)", todo=todo)
+        row = conn.run("INSERT INTO todos (todo) VALUES (:todo) RETURNING id, todo, done", todo=todo)[0]
+        return to_dict(row)
+    finally:
+        conn.close()
+
+
+def set_done(todo_id, done):
+    """Return the updated todo, or None if there is no todo with that id."""
+    conn = connect()
+    try:
+        rows = conn.run(
+            "UPDATE todos SET done = :done WHERE id = :id RETURNING id, todo, done", done=done, id=todo_id
+        )
+        return to_dict(rows[0]) if rows else None
     finally:
         conn.close()
 
@@ -115,13 +134,41 @@ class Handler(BaseHTTPRequestHandler):
             self.send_error(400, f"Todo must be at most {MAX_TODO_LENGTH} characters")
             return
         try:
-            add_todo(todo)
+            created = add_todo(todo)
         except Exception as e:
             print(f"Database error: {e}", flush=True)
             self.send_error(500)
             return
         print(f'Todo created: "{todo}"', flush=True)
-        self.send_json(201, {"todo": todo})
+        self.send_json(201, created)
+
+    def do_PUT(self):
+        match = re.fullmatch(r"/todos/(\d+)", self.path)
+        if not match:
+            self.send_error(404)
+            return
+        todo_id = int(match.group(1))
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            done = json.loads(self.rfile.read(length))["done"]
+            if not isinstance(done, bool):
+                raise ValueError("done must be true or false")
+        except (ValueError, KeyError, TypeError):
+            print(f"Todo {todo_id} update rejected: invalid request", flush=True)
+            self.send_error(400)
+            return
+        try:
+            updated = set_done(todo_id, done)
+        except Exception as e:
+            print(f"Database error: {e}", flush=True)
+            self.send_error(500)
+            return
+        if updated is None:
+            print(f"Todo {todo_id} update rejected: not found", flush=True)
+            self.send_error(404)
+            return
+        print(f'Todo {todo_id} marked as {"done" if done else "not done"}: "{updated["todo"]}"', flush=True)
+        self.send_json(200, updated)
 
 
 def handle_sigterm(signum, frame):
