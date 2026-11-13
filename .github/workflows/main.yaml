@@ -47,11 +47,16 @@ jobs:
 
       - name: Deploy
         run: |-
-          kubectl create namespace project
-          kubectl create secret generic postgres-secret --namespace project --from-literal=POSTGRES_PASSWORD=$(openssl rand -hex 16)
+          # Every branch gets its own namespace named after the branch; main deploys to "project".
+          NAMESPACE="${GITHUB_REF#refs/heads/}"
+          if [ "$NAMESPACE" = "main" ]; then NAMESPACE=project; fi
+          kubectl create namespace "$NAMESPACE" || true
+          kubectl config set-context --current --namespace="$NAMESPACE"
+          kubectl create secret generic postgres-secret --from-literal=POSTGRES_PASSWORD=$(openssl rand -hex 16)
+          kustomize edit set namespace "$NAMESPACE"
           kustomize edit set image PROJECT/TODO_APP=$TODO_APP_IMAGE PROJECT/TODO_BACKEND=$TODO_BACKEND_IMAGE
           kustomize build . | kubectl apply -f -
-          kubectl rollout status statefulset postgres-ss --namespace project --timeout=300s
-          kubectl rollout status deployment todo-backend --namespace project --timeout=300s
-          kubectl rollout status deployment todo-app --namespace project --timeout=300s
-          kubectl get services -o wide --namespace project
+          kubectl rollout status statefulset postgres-ss --timeout=300s
+          kubectl rollout status deployment todo-backend --timeout=300s
+          kubectl rollout status deployment todo-app --timeout=300s
+          kubectl get services -o wide
