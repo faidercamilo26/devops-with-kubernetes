@@ -41,3 +41,44 @@
 - [3.6](https://github.com/faidercamilo26/devops-with-kubernetes/tree/3.6)
 - [3.7](https://github.com/faidercamilo26/devops-with-kubernetes/tree/3.7)
 - [3.8](https://github.com/faidercamilo26/devops-with-kubernetes/tree/3.8)
+- [3.9](https://github.com/faidercamilo26/devops-with-kubernetes/tree/3.9)
+
+## 3.9 DBaaS vs DIY
+
+Comparison between a Database as a Service (for example Google Cloud SQL for PostgreSQL) and running
+Postgres ourselves (a StatefulSet with its own Postgres image and PersistentVolumeClaims, where the
+cluster provisions the PersistentVolumes).
+
+### Initialization: work and cost
+
+| | DBaaS (Cloud SQL) | DIY (StatefulSet + PVC) |
+|---|---|---|
+| Work to start | Create an instance from the console or `gcloud`, create the database and user, and decide how pods reach it (private IP or the Cloud SQL Auth Proxy sidecar). Little work, but it is cloud specific. | Write a Service and a StatefulSet with a `volumeClaimTemplates`, plus a Secret for the password. A few manifests we already know, and they run on any Kubernetes cluster. |
+| Cost | Pay for the instance (vCPU and memory) for every hour it exists, plus storage, backups and network, even when idle. A high availability instance roughly doubles it. | Pay only for the persistent disk and for the node resources the pod uses. No extra charge for the database itself, so it is much cheaper for a small project. |
+| Portability | Tied to the provider and to its connection method. | The same manifests work on a local cluster, GKE or any other cluster. |
+
+### Maintenance
+
+- **DBaaS:** the provider applies operating system and Postgres minor updates in a maintenance window, monitors the
+  instance, and offers high availability (automatic failover to a standby) and read replicas as options. We only
+  tune settings and size.
+- **DIY:** we are responsible for everything. We choose and upgrade the image, plan major version upgrades,
+  watch disk usage and resize the volume, handle crashes and failover (a single replica means downtime while the
+  pod restarts), and set up replication ourselves if we need it.
+
+### Backups: methods and how easy they are to use
+
+- **DBaaS:** automated daily backups and point in time recovery are built in and need almost no setup. A restore is a
+  button or one command, and it can create a new instance from any recent point. On-demand backups and exports to
+  object storage are also available. The cost is that retention and storage are billed.
+- **DIY:** nothing is backed up by default, and a persistent volume is not a backup because losing the volume loses
+  the data. We must build it: a CronJob running `pg_dump` and storing the file somewhere safe (as in exercise
+  3.10), and/or volume snapshots of the disk. It is flexible and cheap, but restoring means us loading the dump
+  into a fresh database by hand, and point in time recovery needs extra tooling (WAL archiving). We also have to
+  test the restore, because an untested backup may not work.
+
+### Conclusion
+
+For a production system where losing data or being down is costly, a DBaaS is usually worth the price because backups,
+updates and failover are solved. For a small project, a learning environment or when cost and portability matter more,
+running Postgres in a StatefulSet is simpler and cheaper, as long as we accept owning the backups and the maintenance.
