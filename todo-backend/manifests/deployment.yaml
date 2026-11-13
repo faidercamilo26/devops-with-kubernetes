@@ -15,10 +15,12 @@ spec:
     spec:
       containers:
         - name: todo-backend
-          image: faidercamilo/todo-backend:2.8
+          image: faidercamilo/todo-backend:2.10
           env:
             - name: PORT
               value: "3000"
+            - name: MAX_TODO_LENGTH
+              value: "140"
             - name: DB_HOST
               value: postgres-svc
             - name: DB_PORT

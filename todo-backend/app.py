@@ -8,6 +8,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import pg8000.native
 
 PORT = int(os.environ["PORT"])
+MAX_TODO_LENGTH = int(os.environ["MAX_TODO_LENGTH"])
 DB_SETTINGS = {
     "host": os.environ["DB_HOST"],
     "port": int(os.environ["DB_PORT"]),
@@ -80,7 +81,15 @@ class Handler(BaseHTTPRequestHandler):
             if not isinstance(todo, str) or not todo:
                 raise ValueError("todo must be a non-empty string")
         except (ValueError, KeyError, TypeError):
+            print("Todo rejected: invalid request", flush=True)
             self.send_error(400)
+            return
+        if len(todo) > MAX_TODO_LENGTH:
+            print(
+                f'Todo rejected: too long ({len(todo)} characters, max {MAX_TODO_LENGTH}): "{todo[:50]}..."',
+                flush=True,
+            )
+            self.send_error(400, f"Todo must be at most {MAX_TODO_LENGTH} characters")
             return
         try:
             add_todo(todo)
@@ -88,6 +97,7 @@ class Handler(BaseHTTPRequestHandler):
             print(f"Database error: {e}", flush=True)
             self.send_error(500)
             return
+        print(f'Todo created: "{todo}"', flush=True)
         self.send_json(201, {"todo": todo})
 
 
