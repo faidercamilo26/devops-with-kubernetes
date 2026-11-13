@@ -25,6 +25,18 @@ spec:
           envFrom:
             - configMapRef:
                 name: todo-app-configmap
+          readinessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            httpGet:
+              path: /healthz
+              port: 3000
+          livenessProbe:
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            httpGet:
+              path: /healthz
+              port: 3000
           ports:
             - containerPort: 3000
           volumeMounts:

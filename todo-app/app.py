@@ -22,6 +22,9 @@ HTML = b"""<!DOCTYPE html>
 <input type="text" id="todo" maxlength="140" placeholder="New todo (max 140 characters)">
 <button type="button" id="send">Send</button>
 </div>
+<div>
+<button type="button" id="break">Break the app</button>
+</div>
 <ul id="todos"></ul>
 <script>
 async function loadTodos() {
@@ -46,6 +49,11 @@ document.getElementById("send").addEventListener("click", async () => {
   input.value = "";
   loadTodos();
 });
+document.getElementById("break").addEventListener("click", async (event) => {
+  await fetch("/break", { method: "POST" });
+  event.target.textContent = "The app is broken";
+  event.target.disabled = true;
+});
 loadTodos();
 </script>
 </body>
@@ -53,6 +61,10 @@ loadTodos();
 """
 
 fetch_lock = threading.Lock()
+
+# Set to False by the "Break the app" button. /healthz reports it, and once the
+# liveness probe fails Kubernetes restarts the container.
+healthy = True
 
 
 def download_image():
@@ -108,7 +120,14 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_GET(self):
-        if self.path == "/":
+        if self.path == "/healthz":
+            if healthy:
+                self.send_body(200, "text/plain; charset=utf-8", b"ok\n")
+            else:
+                self.send_body(500, "text/plain; charset=utf-8", b"unhealthy\n")
+        elif not healthy:
+            self.send_body(500, "text/plain; charset=utf-8", b"the app is broken\n")
+        elif self.path == "/":
             self.send_body(200, "text/html; charset=utf-8", HTML)
         elif self.path == "/image":
             try:
@@ -120,6 +139,20 @@ class Handler(BaseHTTPRequestHandler):
             self.send_body(200, "image/jpeg", data, [("Cache-Control", "no-store")])
         else:
             self.send_error(404)
+
+    def do_POST(self):
+        global healthy
+        if self.path == "/break":
+            healthy = False
+            print("The app was broken on purpose", flush=True)
+            self.send_body(200, "text/plain; charset=utf-8", b"broken\n")
+        else:
+            self.send_error(404)
+
+    def log_message(self, format, *args):
+        # Probes call /healthz every few seconds; keep them out of the log.
+        if self.path != "/healthz":
+            super().log_message(format, *args)
 
 
 def handle_sigterm(signum, frame):

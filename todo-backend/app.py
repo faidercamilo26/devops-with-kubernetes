@@ -15,6 +15,7 @@ DB_SETTINGS = {
     "database": os.environ["DB_NAME"],
     "user": os.environ["DB_USER"],
     "password": os.environ["DB_PASSWORD"],
+    "timeout": 3,
 }
 
 
@@ -34,6 +35,14 @@ def init_db():
         except Exception as e:
             print(f"Waiting for the database: {e}", flush=True)
             time.sleep(2)
+
+
+def check_database():
+    conn = connect()
+    try:
+        conn.run("SELECT 1")
+    finally:
+        conn.close()
 
 
 def get_todos():
@@ -61,7 +70,21 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def log_message(self, format, *args):
+        # Probes call /healthz every few seconds; keep them out of the log.
+        if self.path != "/healthz":
+            super().log_message(format, *args)
+
     def do_GET(self):
+        if self.path == "/healthz":
+            try:
+                check_database()
+            except Exception as e:
+                print(f"Database not available: {e}", flush=True)
+                self.send_error(500)
+                return
+            self.send_json(200, {"status": "ok"})
+            return
         if self.path != "/todos":
             self.send_error(404)
             return

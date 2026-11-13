@@ -49,6 +49,7 @@
 ### Chapter 5
 
 - [4.1](https://github.com/faidercamilo26/devops-with-kubernetes/tree/4.1/ping-pong)
+- [4.2](https://github.com/faidercamilo26/devops-with-kubernetes/tree/4.2/todo-app)
 
 ## 3.9 DBaaS vs DIY
 
