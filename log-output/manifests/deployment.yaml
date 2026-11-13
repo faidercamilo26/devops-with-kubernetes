@@ -16,6 +16,12 @@ spec:
       volumes:
         - name: shared-log
           emptyDir: {}
+        - name: config
+          configMap:
+            name: log-output-configmap
+            items:
+              - key: information.txt
+                path: information.txt
       containers:
         - name: log-writer
           image: faidercamilo/log-output-writer:1.10
@@ -30,12 +36,21 @@ spec:
               cpu: "100m"
               memory: "64Mi"
         - name: log-reader
-          image: faidercamilo/log-output-reader:2.1
+          image: faidercamilo/log-output-reader:2.5
+          env:
+            - name: MESSAGE
+              valueFrom:
+                configMapKeyRef:
+                  name: log-output-configmap
+                  key: MESSAGE
           ports:
             - containerPort: 3000
           volumeMounts:
             - name: shared-log
               mountPath: /usr/src/app/files
+            - name: config
+              mountPath: /usr/src/app/config
+              readOnly: true
           resources:
             requests:
               cpu: "10m"
