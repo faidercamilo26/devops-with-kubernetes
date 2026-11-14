@@ -7,7 +7,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 PORT = 3000
 LOG_FILE = "/usr/src/app/files/log.txt"
 INFORMATION_FILE = "/usr/src/app/config/information.txt"
-PINGPONG_URL = "http://ping-pong-svc:2346/pings"
+PINGPONG_URL = "http://ping-pong.exercises.svc.cluster.local/pings"
 GREETER_URL = os.environ.get("GREETER_URL", "http://greeter-svc/")
 MESSAGE = os.environ["MESSAGE"]
 
@@ -30,7 +30,7 @@ def read_information():
 
 
 def read_pongs():
-    with urllib.request.urlopen(PINGPONG_URL, timeout=5) as response:
+    with urllib.request.urlopen(PINGPONG_URL, timeout=30) as response:
         return response.read().decode().strip()
 
 
@@ -50,12 +50,6 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if self.path == "/healthz":
-            try:
-                read_pongs()
-            except Exception as e:
-                print(f"Ping-pong not available: {e}", flush=True)
-                self.send_status("ping-pong not available", 500)
-                return
             self.send_status("ok", 200)
             return
         try:
