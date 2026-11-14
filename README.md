@@ -64,6 +64,7 @@
 - [5.1](https://github.com/faidercamilo26/devops-with-kubernetes/tree/5.1/dummysite)
 - [5.2](https://github.com/faidercamilo26/devops-with-kubernetes/tree/5.2/istio-sample)
 - [5.3](https://github.com/faidercamilo26/devops-with-kubernetes/tree/5.3/greeter)
+- [5.4](https://github.com/faidercamilo26/devops-with-kubernetes/tree/5.4/wikipedia)
 
 ## 3.9 DBaaS vs DIY
 

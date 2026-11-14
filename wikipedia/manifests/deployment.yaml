@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wikipedia-dep
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wikipedia
+  template:
+    metadata:
+      labels:
+        app: wikipedia
+    spec:
+      volumes:
+        - name: www
+          emptyDir: {}
+      initContainers:
+        - name: init-wikipedia
+          image: curlimages/curl:8.11.1
+          command:
+            - sh
+            - -c
+            - curl -sSL -A "Mozilla/5.0" -o /www/index.html https://en.wikipedia.org/wiki/Kubernetes
+          volumeMounts:
+            - name: www
+              mountPath: /www
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: www
+              mountPath: /usr/share/nginx/html
+        - name: random-wikipedia
+          image: curlimages/curl:8.11.1
+          command:
+            - sh
+            - -c
+            - |
+              while true; do
+                sleep $(awk 'BEGIN { srand(); print int(300 + rand() * 601) }')
+                curl -sSL -A "Mozilla/5.0" -o /www/index.html.tmp https://en.wikipedia.org/wiki/Special:Random && mv /www/index.html.tmp /www/index.html
+              done
+          volumeMounts:
+            - name: www
+              mountPath: /www
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wikipedia-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: wikipedia
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 80
