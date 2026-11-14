@@ -8,6 +8,7 @@ PORT = 3000
 LOG_FILE = "/usr/src/app/files/log.txt"
 INFORMATION_FILE = "/usr/src/app/config/information.txt"
 PINGPONG_URL = "http://ping-pong-svc:2346/pings"
+GREETER_URL = os.environ.get("GREETER_URL", "http://greeter-svc/")
 MESSAGE = os.environ["MESSAGE"]
 
 
@@ -33,6 +34,11 @@ def read_pongs():
         return response.read().decode().strip()
 
 
+def read_greeting():
+    with urllib.request.urlopen(GREETER_URL, timeout=5) as response:
+        return response.read().decode().strip()
+
+
 class Handler(BaseHTTPRequestHandler):
     def send_status(self, text, status):
         body = f"{text}\n".encode()
@@ -54,14 +60,16 @@ class Handler(BaseHTTPRequestHandler):
             return
         try:
             pongs = read_pongs()
+            greeting = read_greeting()
         except Exception as e:
-            print(f"Could not get pongs: {e}", flush=True)
+            print(f"Could not get pongs or greeting: {e}", flush=True)
             self.send_error(502)
             return
         body = (
             f"file content: {read_information()}\n"
             f"env variable: MESSAGE={MESSAGE}\n"
             f"{read_log()}Ping / Pongs: {pongs}\n"
+            f"greeting: {greeting}\n"
         ).encode()
         self.send_response(200)
         self.send_header("Content-Type", "text/plain; charset=utf-8")
