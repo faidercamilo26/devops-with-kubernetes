@@ -68,6 +68,7 @@
 - [5.5](https://github.com/faidercamilo26/devops-with-kubernetes/tree/5.5)
 - [5.6](https://github.com/faidercamilo26/devops-with-kubernetes/tree/5.6/knative)
 - [5.7](https://github.com/faidercamilo26/devops-with-kubernetes/tree/5.7/ping-pong)
+- [5.8](https://github.com/faidercamilo26/devops-with-kubernetes/tree/5.8)
 
 ## 3.9 DBaaS vs DIY
 
