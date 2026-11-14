@@ -65,6 +65,7 @@
 - [5.2](https://github.com/faidercamilo26/devops-with-kubernetes/tree/5.2/istio-sample)
 - [5.3](https://github.com/faidercamilo26/devops-with-kubernetes/tree/5.3/greeter)
 - [5.4](https://github.com/faidercamilo26/devops-with-kubernetes/tree/5.4/wikipedia)
+- [5.5](https://github.com/faidercamilo26/devops-with-kubernetes/tree/5.5)
 
 ## 3.9 DBaaS vs DIY
 
@@ -124,3 +125,23 @@ count(kube_pod_info{namespace="monitoring", created_by_kind="StatefulSet"})
 In this cluster it returns `1`: the only pod created by a StatefulSet in `monitoring` is `loki-0`.
 `kube_pod_info` has one series per pod, `namespace` selects the monitoring stack and `created_by_kind`
 is the kind of controller that created the pod.
+
+## 5.5 Platform comparison
+
+Rancher vs OpenShift. My pick: **Rancher**.
+
+Why Rancher is better:
+
+- **Works with any Kubernetes.** Rancher manages upstream clusters (RKE2, k3s, EKS, GKE, AKS, imported ones). OpenShift is its own Kubernetes distribution and expects you to run it.
+- **Multi-cluster and multi-cloud from one UI.** Rancher was built to manage many clusters in different places. OpenShift can do it too, but it needs extra products (ACM) and licenses.
+- **Light and cheap to start.** k3s runs on a laptop or a Raspberry Pi, as in this course. OpenShift needs several large nodes and a lot of RAM even for a small test cluster.
+- **Fully open source, no subscription required.** Rancher is free to use and support is optional. OpenShift is mostly a paid product (the community edition, OKD, lags behind).
+- **Close to plain Kubernetes.** The `kubectl`, Helm charts and manifests from this course work unchanged. Less lock-in and less to relearn.
+
+Why not OpenShift:
+
+- **Opinionated and restrictive.** It adds its own objects (Routes, DeploymentConfigs, BuildConfigs, Security Context Constraints) and by default blocks containers that run as root, so many public images need changes.
+- **Heavy and costly.** The platform, the licence per core and the minimum hardware are expensive for small teams.
+- **Vendor lock-in.** Features that only exist in OpenShift make it harder to move to another platform.
+
+Where OpenShift is still good: it comes with built-in CI/CD, an image registry, security hardening and enterprise support from Red Hat, which suits big companies that want everything from one vendor.
