@@ -66,6 +66,7 @@
 - [5.3](https://github.com/faidercamilo26/devops-with-kubernetes/tree/5.3/greeter)
 - [5.4](https://github.com/faidercamilo26/devops-with-kubernetes/tree/5.4/wikipedia)
 - [5.5](https://github.com/faidercamilo26/devops-with-kubernetes/tree/5.5)
+- [5.6](https://github.com/faidercamilo26/devops-with-kubernetes/tree/5.6/knative)
 
 ## 3.9 DBaaS vs DIY
 
